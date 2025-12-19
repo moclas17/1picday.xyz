@@ -1,0 +1,34 @@
+import { createClient } from "@/lib/supabase/server";
+import { getSignedReadUrl } from "@/lib/s3";
+import { NextResponse } from "next/server";
+
+export async function GET(request: Request) {
+    const supabase = createClient();
+    const {
+        data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const key = searchParams.get('key');
+
+    if (!key) {
+        return NextResponse.json({ error: "Key is required" }, { status: 400 });
+    }
+
+    // Security check: Ensure the key belongs to the user OR allow all validated users to see?
+    // User asked for "not social", private. So ONLY own photos.
+    if (!key.startsWith(`users/${user.id}/`)) {
+        // Strict check: the key must start with users/{userId}/
+        // This prevents reading other users' files even if they guess the key
+        return NextResponse.json({ error: "Access Denied" }, { status: 403 });
+    }
+
+    const bucket = process.env.AWS_S3_BUCKET!;
+    const url = await getSignedReadUrl(bucket, key);
+
+    return NextResponse.json({ url });
+}
