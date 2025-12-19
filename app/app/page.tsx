@@ -1,62 +1,30 @@
+import { getSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { Header } from "@/components/header";
-import { UploadSection } from "@/components/upload-section";
-import { PhotoCard } from "@/components/photo-card";
 import { redirect } from "next/navigation";
+import { AppClient } from "./client";
 
 export default async function AppPage() {
-    const supabase = createClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    const session = await getSession();
+    if (!session) redirect("/login");
+    const user = session;
 
-    if (!user) {
-        redirect("/login");
-    }
+    const supabase = await createClient();
 
     // Fetch photos
     const { data: photos } = await supabase
         .from("daily_photos")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", user.userId)
         .order("date", { ascending: false });
 
-    const today = new Date().toISOString().split("T")[0];
-    const hasUploadedToday = photos?.some((p) => p.date === today);
+    // Check if pro
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_pro")
+        .eq("id", user.userId)
+        .single();
 
-    // Check limits just for UI hint (optional, simpler to just show upload if not done)
-    // Logic: If not uploaded today, show upload section.
-    // Note: The upload component will handle the "limit reached" error gracefully if triggered.
+    const isPro = profile?.is_pro || false;
 
-    return (
-        <div className="min-h-screen bg-background flex flex-col">
-            <Header />
-            <main className="flex-1 w-full max-w-2xl mx-auto p-6 flex flex-col gap-8">
-
-                {/* Today's Action */}
-                {!hasUploadedToday ? (
-                    <section className="animate-in slide-in-from-bottom-4 duration-500">
-                        <UploadSection />
-                    </section>
-                ) : (
-                    <div className="p-4 bg-moss/10 text-moss rounded-md text-center">
-                        You&apos;ve uploaded your photo for today. Come back tomorrow!
-                    </div>
-                )}
-
-                {/* Timeline */}
-                <section className="flex flex-col gap-6">
-                    <h2 className="text-lg font-semibold text-ink">Your Timeline</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {photos?.map((photo) => (
-                            <PhotoCard key={photo.id} photo={photo} />
-                        ))}
-                        {photos?.length === 0 && (
-                            <p className="text-stone col-span-2 text-center py-10">No photos yet.</p>
-                        )}
-                    </div>
-                </section>
-            </main>
-        </div>
-    );
+    return <AppClient initialPhotos={photos || []} isPro={isPro} userId={user.userId} />;
 }

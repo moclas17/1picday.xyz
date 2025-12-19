@@ -1,36 +1,40 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { ImageIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default async function LandingPage() {
-  const supabase = createClient();
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const session = await getSession();
 
   if (session) {
     redirect("/app");
   }
 
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center gap-6 p-6 text-center">
-      <h1 className="text-4xl font-bold tracking-tight text-ink">1picday</h1>
-      <p className="text-xl text-stone max-w-md">
-        A private journal to capture your life, one photo a day.
-      </p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--paper)] text-[var(--ink)] px-4">
+      <div className="max-w-md w-full text-center space-y-8">
+        <div className="flex justify-center">
+          <div className="w-20 h-20 rounded-[var(--radius)] bg-[var(--moss)] flex items-center justify-center">
+            <ImageIcon className="w-10 h-10 text-[var(--paper)]" />
+          </div>
+        </div>
 
-      <div className="flex gap-4 mt-4">
-        <Link
-          href="/login"
-          className="bg-ink text-paper px-6 py-3 rounded-md font-medium hover:opacity-90 transition-opacity"
-        >
-          Get Started
-        </Link>
+        <div className="space-y-3">
+          <h1 className="text-4xl font-bold text-balance">1picday</h1>
+          <p className="text-lg text-[var(--stone)] text-pretty">
+            One photo, every day. Build your visual story, one moment at a time.
+          </p>
+        </div>
+
+        <div className="pt-4">
+          <Button asChild size="lg" className="w-full bg-[var(--moss)] text-[var(--paper)] hover:opacity-90">
+            <Link href="/login">Get Started</Link>
+          </Button>
+        </div>
+
+        <p className="text-sm text-[var(--ash)]">First 7 photos are free. Go Pro for unlimited daily memories.</p>
       </div>
-
-      <footer className="absolute bottom-6 text-sm text-stone">
-        Simple. Private. Yours.
-      </footer>
     </div>
   );
 }

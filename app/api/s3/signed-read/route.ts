@@ -1,16 +1,14 @@
+import { getSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedReadUrl } from "@/lib/s3";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-    const supabase = createClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const session = await getSession();
+    if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const user = session;
 
     const { searchParams } = new URL(request.url);
     const key = searchParams.get('key');
@@ -21,7 +19,7 @@ export async function GET(request: Request) {
 
     // Security check: Ensure the key belongs to the user OR allow all validated users to see?
     // User asked for "not social", private. So ONLY own photos.
-    if (!key.startsWith(`users/${user.id}/`)) {
+    if (!key.startsWith(`users/${user.userId}/`)) {
         // Strict check: the key must start with users/{userId}/
         // This prevents reading other users' files even if they guess the key
         return NextResponse.json({ error: "Access Denied" }, { status: 403 });

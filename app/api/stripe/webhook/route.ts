@@ -1,11 +1,12 @@
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
-import { createClient } from "@supabase/supabase-js"; // Direct usage for admin (service role)
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(request: Request) {
     const body = await request.text();
-    const signature = headers().get("stripe-signature") as string;
+    const headersList = await headers();
+    const signature = headersList.get("stripe-signature") as string;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
     let event;
@@ -47,7 +48,6 @@ export async function POST(request: Request) {
             }
             break;
         }
-        // Handle other events like updated/payment_failed as needed
         default:
             console.log(`Unhandled event type ${event.type}`);
     }

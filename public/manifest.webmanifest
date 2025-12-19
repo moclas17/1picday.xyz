@@ -1,0 +1,24 @@
+{
+  "name": "1picday",
+  "short_name": "1picday",
+  "description": "One photo every day. Build your visual story.",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#FAFAFA",
+  "theme_color": "#5F7A6A",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

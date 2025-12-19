@@ -1,0 +1,42 @@
+{
+    "name": "1picday",
+    "short_name": "1picday",
+    "description": "Capture your life, one photo at a time",
+    "start_url": "/app",
+    "id": "/app",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#000000",
+    "orientation": "portrait",
+    "icons": [
+        {
+            "src": "/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+        },
+        {
+            "src": "/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ],
+    "screenshots": [],
+    "categories": [
+        "lifestyle",
+        "photo"
+    ]
+}

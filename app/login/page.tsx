@@ -1,25 +1,22 @@
-import { createClient } from "@/lib/supabase/server";
-import { headers } from "next/headers";
+import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import LoginClient from "./client";
 
-export default async function LoginPage({
-    searchParams,
-}: {
-    searchParams: { message?: string };
-}) {
-    const supabase = createClient();
-    const {
-        data: { session },
-    } = await supabase.auth.getSession();
+interface PageProps {
+    searchParams: Promise<{ message?: string }>;
+}
 
+export default async function LoginPage({ searchParams }: PageProps) {
+    const session = await getSession();
     if (session) {
-        return redirect("/app");
+        redirect("/app");
     }
 
+    const params = await searchParams;
+
     return (
-        <div className="flex-1 flex flex-col w-full px-8 sm:max-w-md justify-center gap-2 mx-auto min-h-screen">
-            <LoginClient message={searchParams.message} />
+        <div className="flex-1 flex flex-col w-full px-6 justify-center gap-2 mx-auto min-h-screen min-h-[100dvh] bg-background">
+            <LoginClient message={params.message} />
         </div>
     );
 }

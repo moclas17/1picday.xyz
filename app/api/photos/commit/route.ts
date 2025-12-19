@@ -1,15 +1,14 @@
+import { getSession } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-    const supabase = createClient();
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
+    const session = await getSession();
+    if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    const user = session;
+    const supabase = await createClient();
 
     const body = await request.json();
     const { key, bucket, date, mime_type } = body;
@@ -20,7 +19,7 @@ export async function POST(request: Request) {
 
     // Insert into DB
     const { error } = await supabase.from("daily_photos").insert({
-        user_id: user.id,
+        user_id: user.userId,
         date,
         s3_key: key,
         s3_bucket: bucket,
