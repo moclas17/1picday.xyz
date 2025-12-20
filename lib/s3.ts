@@ -29,8 +29,8 @@ export async function getSignedReadUrl(bucket: string, key: string) {
         Bucket: bucket,
         Key: key,
     });
-    // Valid for 1 hour
-    return getSignedUrl(s3Client, command, { expiresIn: 3600 });
+    // Valid for 24 hours
+    return getSignedUrl(s3Client, command, { expiresIn: 86400 });
 }
 
 export { s3Client };

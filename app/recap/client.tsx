@@ -22,6 +22,11 @@ interface RecapClientProps {
 
 export function RecapClient({ photos }: RecapClientProps) {
     const [showCollage, setShowCollage] = useState(false)
+    const [urlCache, setUrlCache] = useState<Record<string, string>>({})
+
+    const onUrlResolved = (key: string, url: string) => {
+        setUrlCache(prev => ({ ...prev, [key]: url }))
+    }
 
     return (
         <div className="min-h-screen bg-[var(--paper)] pb-20">
@@ -53,6 +58,8 @@ export function RecapClient({ photos }: RecapClientProps) {
                                 key={photo.id}
                                 photo={photo}
                                 isFirst={index === 0}
+                                cachedUrl={urlCache[photo.s3_key]}
+                                onResolved={(url) => onUrlResolved(photo.s3_key, url)}
                             />
                         ))}
                     </div>
@@ -76,28 +83,53 @@ export function RecapClient({ photos }: RecapClientProps) {
                 photos={photos}
                 open={showCollage}
                 onOpenChange={setShowCollage}
+                urlCache={urlCache}
+                onUrlResolved={onUrlResolved}
             />
         </div>
     )
 }
 
-function PhotoThumbnail({ photo, isFirst }: { photo: Photo; isFirst: boolean }) {
-    const [url, setUrl] = useState<string | null>(null)
+import { PhotoCache } from "@/lib/photo-cache"
 
+function PhotoThumbnail({
+    photo,
+    isFirst,
+    cachedUrl,
+    onResolved
+}: {
+    photo: Photo;
+    isFirst: boolean;
+    cachedUrl?: string;
+    onResolved: (url: string) => void
+}) {
     useEffect(() => {
+        if (cachedUrl) return
+
+        // 1. Check persistent cache first
+        const persistedUrl = PhotoCache.get(photo.s3_key)
+        if (persistedUrl) {
+            onResolved(persistedUrl)
+            return
+        }
+
         const fetchUrl = async () => {
             const res = await fetch(`/api/s3/signed-read?key=${photo.s3_key}`)
             if (res.ok) {
                 const data = await res.json()
-                setUrl(data.url)
+                // Construct proxy URL
+                const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(data.url)}`
+                // 2. Save to persistent cache
+                PhotoCache.set(photo.s3_key, proxyUrl)
+                onResolved(proxyUrl)
             }
         }
         fetchUrl()
-    }, [photo.s3_key])
+    }, [photo.s3_key, cachedUrl, onResolved])
 
     const dayName = new Date(photo.date).toLocaleDateString('en-US', { weekday: 'short' })
 
-    if (!url) {
+    if (!cachedUrl) {
         return (
             <div className={`relative aspect-square bg-[var(--mist)] animate-pulse ${isFirst ? 'col-span-2 row-span-2' : ''}`} />
         )
@@ -106,7 +138,7 @@ function PhotoThumbnail({ photo, isFirst }: { photo: Photo; isFirst: boolean }) 
     return (
         <div className={`relative aspect-square bg-[var(--mist)] overflow-hidden ${isFirst ? 'col-span-2 row-span-2' : ''}`}>
             <Image
-                src={url}
+                src={cachedUrl}
                 alt={`Photo from ${photo.date}`}
                 fill
                 className="object-cover"

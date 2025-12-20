@@ -167,19 +167,25 @@ export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
     )
 }
 
+import { PhotoCache } from "@/lib/photo-cache"
+
 function PhotoCardWithUrl({ photo }: { photo: Photo }) {
-    const [url, setUrl] = useState<string | null>(null)
+    const [url, setUrl] = useState<string | null>(() => PhotoCache.get(photo.s3_key))
 
     useEffect(() => {
+        if (url) return
+
         const fetchUrl = async () => {
             const res = await fetch(`/api/s3/signed-read?key=${photo.s3_key}`)
             if (res.ok) {
                 const data = await res.json()
-                setUrl(data.url)
+                const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(data.url)}`
+                PhotoCache.set(photo.s3_key, proxyUrl)
+                setUrl(proxyUrl)
             }
         }
         fetchUrl()
-    }, [photo.s3_key])
+    }, [photo.s3_key, url])
 
     if (!url) {
         return (

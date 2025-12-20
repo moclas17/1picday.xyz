@@ -59,7 +59,8 @@ export async function POST(request: Request) {
         }
 
         const ext = contentType.split('/')[1];
-        const key = `users/${user.userId}/${today}/${uuidv4()}.${ext}`;
+        const year = new Date().getFullYear();
+        const key = `${user.userId}/${year}/${today}.${ext}`;
         const bucket = process.env.AWS_S3_BUCKET!;
 
         // 3. Get Presigned URL
