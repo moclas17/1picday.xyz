@@ -17,10 +17,9 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "Key is required" }, { status: 400 });
     }
 
-    // Security check: Ensure the key belongs to the user OR allow all validated users to see?
-    // User asked for "not social", private. So ONLY own photos.
+    // Security check: Ensure the key belongs to the user
     if (!key.startsWith(`users/${user.userId}/`)) {
-        // Strict check: the key must start with users/{userId}/
+        // Strict check: the key must start with {userId}/
         // This prevents reading other users' files even if they guess the key
         return NextResponse.json({ error: "Access Denied" }, { status: 403 });
     }

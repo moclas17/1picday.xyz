@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2, Camera } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { formatDateLocal } from "@/lib/utils";
 
 export function UploadSection() {
     const [uploading, setUploading] = useState(false);
@@ -27,7 +28,10 @@ export function UploadSection() {
             const presignRes = await fetch("/api/s3/presign", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contentType: file.type }),
+                body: JSON.stringify({
+                    contentType: file.type,
+                    localDate: formatDateLocal()
+                }),
             });
 
             if (!presignRes.ok) {
@@ -75,7 +79,7 @@ export function UploadSection() {
             }
             console.log("Upload: Commit success");
 
-            router.refresh();
+            window.location.reload();
         } catch (err: any) {
             console.error("Upload Error:", err);
             setError(err.message);

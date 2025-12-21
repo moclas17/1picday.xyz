@@ -8,6 +8,7 @@ import { AppHeader } from "@/components/app-header"
 import { PhotoCard } from "@/components/photo-card"
 import { UpgradeDialog } from "@/components/upgrade-dialog"
 import { useRouter } from "next/navigation"
+import { formatDateLocal, parseDateLocal } from "@/lib/utils"
 
 interface Photo {
     id: string
@@ -30,7 +31,7 @@ export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
 
     const photosCount = photos.length
     const remainingFree = Math.max(0, 7 - photosCount)
-    const today = new Date().toISOString().split("T")[0]
+    const today = formatDateLocal()
     const todayPhoto = photos.find((p) => p.date === today)
 
     const handleUpload = async () => {
@@ -59,7 +60,10 @@ export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
                 const presignRes = await fetch("/api/s3/presign", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ contentType: file.type }),
+                    body: JSON.stringify({
+                        contentType: file.type,
+                        localDate: today
+                    }),
                 })
 
                 if (!presignRes.ok) {
@@ -103,9 +107,9 @@ export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
                     console.error("AppClient: Commit failed", commitData);
                     throw new Error("Failed to save photo")
                 }
-                console.log("AppClient: Commit success");
+                console.log("Upload: Commit success");
 
-                router.refresh()
+                window.location.reload();
             } catch (error: any) {
                 console.error("AppClient: Upload Error", error);
                 alert(error.message)
@@ -160,13 +164,15 @@ export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
                     </div>
 
                     {/* Timeline */}
-                    {photos.length > 0 && (
+                    {photos.filter(p => p.date !== today).length > 0 && (
                         <div className="space-y-4">
                             <h2 className="text-xl font-bold text-[var(--ink)]">Your Timeline</h2>
                             <div className="grid gap-4">
-                                {photos.map((photo) => (
-                                    <PhotoCardWithUrl key={photo.id} photo={photo} />
-                                ))}
+                                {photos
+                                    .filter((photo) => photo.date !== today)
+                                    .map((photo) => (
+                                        <PhotoCardWithUrl key={photo.id} photo={photo} />
+                                    ))}
                             </div>
                         </div>
                     )}

@@ -1,4 +1,5 @@
 "use client"
+import { parseDateLocal } from "@/lib/utils"
 
 interface PhotoCardProps {
   photo: {
@@ -21,7 +22,7 @@ export function PhotoCard({ photo }: PhotoCardProps) {
       </div>
       <div className="p-4 space-y-2">
         <p className="text-sm font-medium text-[var(--stone)]">
-          {new Date(photo.date).toLocaleDateString("en-US", {
+          {parseDateLocal(photo.date).toLocaleDateString("en-US", {
             weekday: "long",
             year: "numeric",
             month: "long",

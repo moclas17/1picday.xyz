@@ -40,6 +40,7 @@ export function CollageGenerator({
     const [layout, setLayout] = useState<Layout>("grid")
     const canvasRef = useRef<HTMLDivElement>(null)
     const [loadingUrls, setLoadingUrls] = useState(false)
+    const activeRequests = useRef<Set<string>>(new Set())
 
     const count =
         layout === 'yearly' ? 20 :
@@ -56,7 +57,8 @@ export function CollageGenerator({
             const proxiedUrl = url.startsWith('/api/proxy-image')
                 ? url
                 : `/api/proxy-image?url=${encodeURIComponent(url)}`;
-            return { ...p, url: proxiedUrl };
+            // Add cache buster for collage images to ensure fresh CORS headers for canvas
+            return { ...p, url: `${proxiedUrl}&cb=${p.id}` };
         })
         .filter(p => p.url) as (Photo & { url: string })[];
 
@@ -64,15 +66,17 @@ export function CollageGenerator({
         if (!open) return
 
         const currentPhotos = photos.slice(0, count);
-        const toResolve = currentPhotos.filter(p => !urlCache[p.s3_key]);
+        const toResolve = currentPhotos.filter(p => !urlCache[p.s3_key] && !activeRequests.current.has(p.s3_key));
 
         if (toResolve.length === 0) {
-            setLoadingUrls(false);
+            if (activeRequests.current.size === 0) setLoadingUrls(false);
             return;
         }
 
         const loadUrls = async () => {
             setLoadingUrls(true)
+            toResolve.forEach(p => activeRequests.current.add(p.s3_key));
+
             await Promise.all(
                 toResolve.map(async (p) => {
                     try {
@@ -89,10 +93,17 @@ export function CollageGenerator({
                             PhotoCache.set(p.s3_key, proxyUrl)
                             onUrlResolved(p.s3_key, proxyUrl)
                         }
-                    } catch (e) { console.error(e) }
+                    } catch (e) {
+                        console.error(e)
+                    } finally {
+                        activeRequests.current.delete(p.s3_key)
+                    }
                 })
             )
-            setLoadingUrls(false)
+
+            if (activeRequests.current.size === 0) {
+                setLoadingUrls(false)
+            }
         }
         loadUrls()
     }, [open, photos, layout, urlCache, onUrlResolved, count])

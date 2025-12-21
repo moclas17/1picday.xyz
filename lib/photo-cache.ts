@@ -38,15 +38,18 @@ export const PhotoCache = {
         if (typeof window === "undefined") return
 
         try {
+            // Re-read latest state to avoid race conditions
             const cacheRaw = localStorage.getItem(CACHE_KEY)
             const cache: Record<string, CacheEntry> = cacheRaw ? JSON.parse(cacheRaw) : {}
 
-            // Clean up old entries while we're at it (to keep localStorage small)
             const now = Date.now()
+            // Slightly shorter TTL than S3 (23h) to be safe
+            const SAFE_TTL = 23 * 60 * 60 * 1000
+
             const cleanedCache: Record<string, CacheEntry> = {}
 
             Object.entries(cache).forEach(([key, entry]) => {
-                if (now - entry.timestamp <= CACHE_TTL) {
+                if (now - entry.timestamp <= SAFE_TTL) {
                     cleanedCache[key] = entry
                 }
             })

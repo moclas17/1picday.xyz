@@ -15,9 +15,12 @@ export async function POST(request: Request) {
 
     try {
         const supabase = await createClient();
+        const body = await request.json();
+        const { contentType, localDate } = body;
 
         // 1. Check constraints
-        const today = new Date().toISOString().split("T")[0];
+        // Use client-provided local date or fallback to UTC
+        const today = localDate || new Date().toISOString().split("T")[0];
 
         // Check if uploaded today
         const { data: todayPhoto, error: todayError } = await supabase
@@ -51,16 +54,13 @@ export async function POST(request: Request) {
         }
 
         // 2. Generate Key
-        const body = await request.json();
-        const contentType = body.contentType;
-
         if (!['image/jpeg', 'image/png', 'image/webp'].includes(contentType)) {
             return NextResponse.json({ error: "Invalid Content-Type. Only JPEG, PNG, and WebP allow." }, { status: 400 });
         }
 
         const ext = contentType.split('/')[1];
         const year = new Date().getFullYear();
-        const key = `${user.userId}/${year}/${today}.${ext}`;
+        const key = `users/${user.userId}/${year}/${today}.${ext}`;
         const bucket = process.env.AWS_S3_BUCKET!;
 
         // 3. Get Presigned URL
