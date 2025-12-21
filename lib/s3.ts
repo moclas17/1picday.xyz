@@ -18,6 +18,8 @@ export async function getPresignedUploadUrl(
         Bucket: bucket,
         Key: key,
         ContentType: contentType,
+        // Disable automated checksums which can interfere with browser fetch
+        checksumAlgorithm: undefined,
     });
 
     // Expires in 60 seconds

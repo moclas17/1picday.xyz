@@ -54,30 +54,39 @@ export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
             setUploading(true)
 
             try {
+                console.log("AppClient: Upload starting", file.name, file.type);
                 // 1. Get presigned URL
                 const presignRes = await fetch("/api/s3/presign", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ contentType: file.type }),
                 })
-                const presignData = await presignRes.json()
 
                 if (!presignRes.ok) {
-                    throw new Error(presignData.error || "Failed to get upload URL")
+                    const errorData = await presignRes.json();
+                    console.error("AppClient: Presign failed", errorData);
+                    throw new Error(errorData.error || "Failed to get upload URL")
                 }
 
+                const presignData = await presignRes.json()
+                console.log("AppClient: Presign success", presignData);
+
                 // 2. Upload to S3
+                console.log("AppClient: Uploading to S3...", presignData.url);
                 const uploadRes = await fetch(presignData.url, {
                     method: "PUT",
                     body: file,
-                    headers: { "Content-Type": file.type },
+                    headers: { "Content-Type": "application/octet-stream" },
                 })
 
                 if (!uploadRes.ok) {
+                    console.error("AppClient: S3 PUT failed", uploadRes.status, uploadRes.statusText);
                     throw new Error("Failed to upload to S3")
                 }
+                console.log("AppClient: S3 PUT success");
 
                 // 3. Commit to DB
+                console.log("AppClient: Committing to DB...");
                 const commitRes = await fetch("/api/photos/commit", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -90,11 +99,15 @@ export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
                 })
 
                 if (!commitRes.ok) {
+                    const commitData = await commitRes.json();
+                    console.error("AppClient: Commit failed", commitData);
                     throw new Error("Failed to save photo")
                 }
+                console.log("AppClient: Commit success");
 
                 router.refresh()
             } catch (error: any) {
+                console.error("AppClient: Upload Error", error);
                 alert(error.message)
             } finally {
                 setUploading(false)

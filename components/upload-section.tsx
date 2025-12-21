@@ -22,6 +22,7 @@ export function UploadSection() {
         setError(null);
 
         try {
+            console.log("Upload: Starting for file", file.name, file.type);
             // 1. Get Presigned URL
             const presignRes = await fetch("/api/s3/presign", {
                 method: "POST",
@@ -29,26 +30,33 @@ export function UploadSection() {
                 body: JSON.stringify({ contentType: file.type }),
             });
 
-            const presignData = await presignRes.json();
-
             if (!presignRes.ok) {
-                throw new Error(presignData.error || "Failed to get upload URL");
+                const errorData = await presignRes.json();
+                console.error("Upload: Presign failed", errorData);
+                throw new Error(errorData.error || "Failed to get upload URL");
             }
+
+            const presignData = await presignRes.json();
+            console.log("Upload: Presign success", presignData);
 
             const { url, key, bucket, date } = presignData;
 
             // 2. Upload to S3
+            console.log("Upload: Attempting S3 PUT to", url);
             const uploadRes = await fetch(url, {
                 method: "PUT",
                 body: file,
-                headers: { "Content-Type": file.type },
+                headers: { "Content-Type": "application/octet-stream" },
             });
 
             if (!uploadRes.ok) {
+                console.error("Upload: S3 PUT failed", uploadRes.status, uploadRes.statusText);
                 throw new Error("Failed to upload image to storage.");
             }
+            console.log("Upload: S3 PUT success");
 
             // 3. Commit to DB
+            console.log("Upload: Committing to DB");
             const commitRes = await fetch("/api/photos/commit", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -61,11 +69,15 @@ export function UploadSection() {
             });
 
             if (!commitRes.ok) {
+                const commitData = await commitRes.json();
+                console.error("Upload: Commit failed", commitData);
                 throw new Error("Failed to save photo record.");
             }
+            console.log("Upload: Commit success");
 
             router.refresh();
         } catch (err: any) {
+            console.error("Upload Error:", err);
             setError(err.message);
         } finally {
             setUploading(false);

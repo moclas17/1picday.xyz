@@ -1,42 +1,41 @@
 "use client"
 
-import { useEffect, useState } from "react"
 import { Moon, Sun } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<"light" | "dark">("light")
+  const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-    const stored = localStorage.getItem("theme") as "light" | "dark" | null
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-    const initialTheme = stored || (prefersDark ? "dark" : "light")
-    setTheme(initialTheme)
-    document.documentElement.classList.toggle("dark", initialTheme === "dark")
   }, [])
 
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light"
-    setTheme(newTheme)
-    localStorage.setItem("theme", newTheme)
-    document.documentElement.classList.toggle("dark", newTheme === "dark")
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return <div className="w-10 h-10" />
   }
 
-  if (!mounted) {
-    return <div className="w-9 h-9" />
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "dark" : "light")
   }
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
+    <button
       onClick={toggleTheme}
-      className="text-[var(--stone)] hover:text-[var(--ink)] hover:bg-[var(--mist)] hover:bg-opacity-50"
+      aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
+      className="rounded-full p-2 transition-colors hover:opacity-80"
+      style={{
+        backgroundColor: "transparent",
+        border: `1px solid var(--mist)`,
+      }}
     >
-      {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-      <span className="sr-only">Toggle theme</span>
-    </Button>
+      {theme === "light" ? (
+        <Moon className="w-5 h-5" style={{ color: "var(--ink)" }} />
+      ) : (
+        <Sun className="w-5 h-5" style={{ color: "var(--ink)" }} />
+      )}
+    </button>
   )
 }

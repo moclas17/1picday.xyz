@@ -64,8 +64,10 @@ export async function POST(request: Request) {
         const bucket = process.env.AWS_S3_BUCKET!;
 
         // 3. Get Presigned URL
+        // Standardize on octet-stream to avoid signature/preflight issues with specific image types
+        const uploadContentType = "application/octet-stream";
         console.log("Presign: Generating URL for bucket", bucket, "key", key);
-        const url = await getPresignedUploadUrl(bucket, key, contentType);
+        const url = await getPresignedUploadUrl(bucket, key, uploadContentType);
 
         console.log("Presign: Success", url);
 
