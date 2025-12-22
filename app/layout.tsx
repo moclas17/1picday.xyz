@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ServiceWorkerRegistration } from "@/components/sw-registration";
+import { PWAProvider } from "@/components/pwa-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -49,16 +50,18 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icons/icon-192.png" />
       </head>
       <body className={`${inter.className} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <div className="min-h-screen min-h-[100dvh] flex flex-col">
-            {children}
-          </div>
-        </ThemeProvider>
+        <PWAProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <div className="min-h-screen min-h-[100dvh] flex flex-col">
+              {children}
+            </div>
+          </ThemeProvider>
+        </PWAProvider>
         <ServiceWorkerRegistration />
       </body>
     </html>

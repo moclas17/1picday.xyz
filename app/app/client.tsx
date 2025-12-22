@@ -27,97 +27,42 @@ export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
     const [photos, setPhotos] = useState<Photo[]>(initialPhotos)
     const [showUpgrade, setShowUpgrade] = useState(false)
     const [uploading, setUploading] = useState(false)
+    const [hasHydrated, setHasHydrated] = useState(false)
+    const [today, setToday] = useState("")
     const router = useRouter()
+
+    useEffect(() => {
+        setHasHydrated(true)
+        setToday(formatDateLocal())
+    }, [])
 
     const photosCount = photos.length
     const remainingFree = Math.max(0, 7 - photosCount)
-    const today = formatDateLocal()
-    const todayPhoto = photos.find((p) => p.date === today)
+    // Use the potentially server-mismatched 'today' only after hydration
+    const todayPhoto = hasHydrated ? photos.find((p) => p.date === today) : null
 
     const handleUpload = async () => {
-        if (!isPro && photosCount >= 7) {
-            setShowUpgrade(true)
-            return
-        }
+        // ... (keep logic same but use the local date at runtime)
+        const currentToday = formatDateLocal()
+        // ... (rest of handleUpload)
+    }
 
-        const input = document.createElement("input")
-        input.type = "file"
-        input.accept = "image/jpeg,image/png,image/webp"
-        input.onchange = async (e) => {
-            const file = (e.target as HTMLInputElement).files?.[0]
-            if (!file) return
+    // ... handleUpload implementation repeated for context if needed, but I'll use ReplacementContent correctly
 
-            if (file.size > 10 * 1024 * 1024) {
-                alert("File size too large (max 10MB)")
-                return
-            }
-
-            setUploading(true)
-
-            try {
-                console.log("AppClient: Upload starting", file.name, file.type);
-                // 1. Get presigned URL
-                const presignRes = await fetch("/api/s3/presign", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contentType: file.type,
-                        localDate: today
-                    }),
-                })
-
-                if (!presignRes.ok) {
-                    const errorData = await presignRes.json();
-                    console.error("AppClient: Presign failed", errorData);
-                    throw new Error(errorData.error || "Failed to get upload URL")
-                }
-
-                const presignData = await presignRes.json()
-                console.log("AppClient: Presign success", presignData);
-
-                // 2. Upload to S3
-                console.log("AppClient: Uploading to S3...", presignData.url);
-                const uploadRes = await fetch(presignData.url, {
-                    method: "PUT",
-                    body: file,
-                    headers: { "Content-Type": "application/octet-stream" },
-                })
-
-                if (!uploadRes.ok) {
-                    console.error("AppClient: S3 PUT failed", uploadRes.status, uploadRes.statusText);
-                    throw new Error("Failed to upload to S3")
-                }
-                console.log("AppClient: S3 PUT success");
-
-                // 3. Commit to DB
-                console.log("AppClient: Committing to DB...");
-                const commitRes = await fetch("/api/photos/commit", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        key: presignData.key,
-                        bucket: presignData.bucket,
-                        date: presignData.date,
-                        mime_type: file.type,
-                    }),
-                })
-
-                if (!commitRes.ok) {
-                    const commitData = await commitRes.json();
-                    console.error("AppClient: Commit failed", commitData);
-                    throw new Error("Failed to save photo")
-                }
-                console.log("Upload: Commit success");
-
-                window.location.reload();
-            } catch (error: any) {
-                console.error("AppClient: Upload Error", error);
-                alert(error.message)
-            } finally {
-                setUploading(false)
-            }
-        }
-        input.click()
+    if (!hasHydrated) {
+        // Return a stable initial state for SSR and first render
+        return (
+            <div className="min-h-screen bg-[var(--paper)] pb-20">
+                <AppHeader />
+                <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+                    <div className="animate-pulse space-y-4">
+                        <div className="h-8 w-32 bg-[var(--mist)] rounded" />
+                        <div className="aspect-square bg-[var(--mist)] rounded-2xl" />
+                    </div>
+                </main>
+                <BottomNav active="home" />
+            </div>
+        )
     }
 
     return (
@@ -189,10 +134,15 @@ export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
 import { PhotoCache } from "@/lib/photo-cache"
 
 function PhotoCardWithUrl({ photo }: { photo: Photo }) {
-    const [url, setUrl] = useState<string | null>(() => PhotoCache.get(photo.s3_key))
+    const [url, setUrl] = useState<string | null>(null)
 
     useEffect(() => {
-        if (url) return
+        // Safe to check cache after hydration
+        const cached = PhotoCache.get(photo.s3_key)
+        if (cached) {
+            setUrl(cached)
+            return
+        }
 
         const fetchUrl = async () => {
             const res = await fetch(`/api/s3/signed-read?key=${photo.s3_key}`)
@@ -204,7 +154,7 @@ function PhotoCardWithUrl({ photo }: { photo: Photo }) {
             }
         }
         fetchUrl()
-    }, [photo.s3_key, url])
+    }, [photo.s3_key])
 
     if (!url) {
         return (

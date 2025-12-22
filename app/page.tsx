@@ -149,7 +149,7 @@ export default async function Home() {
       <footer className="py-12 px-6 border-t border-[var(--mist)]">
         <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <Logo width={120} height={24} style={{ opacity: 0.5 }} />
-          <div className="text-[var(--ash)] text-xs font-medium tracking-widest uppercase">
+          <div className="text-[var(--ash)] text-xs font-medium tracking-widest uppercase" suppressHydrationWarning>
             © {new Date().getFullYear()} 1PICDAY.XYZ
           </div>
         </div>

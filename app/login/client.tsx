@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 import { magic } from "@/lib/magic"
+import { PWAInstallPromo } from "@/components/pwa-install-promo"
 
 export default function LoginClient({ message }: { message?: string }) {
     const [email, setEmail] = useState("")
@@ -102,6 +103,20 @@ export default function LoginClient({ message }: { message?: string }) {
                                     {isLoading ? "Sending..." : "Send magic link"}
                                 </Button>
                             </form>
+
+                            <div className="pt-8">
+                                <div className="relative">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <span className="w-full border-t border-[var(--mist)]" />
+                                    </div>
+                                    <div className="relative flex justify-center text-xs uppercase">
+                                        <span className="bg-[var(--paper)] px-2 text-[var(--ash)]">Better as an app</span>
+                                    </div>
+                                </div>
+                                <div className="mt-4">
+                                    <PWAInstallPromo />
+                                </div>
+                            </div>
                         </>
                     ) : (
                         <div className="text-center space-y-4">
