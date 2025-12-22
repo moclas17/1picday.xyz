@@ -4,9 +4,11 @@ import { useState, useEffect } from "react"
 import { BottomNav } from "@/components/bottom-nav"
 import { AppHeader } from "@/components/app-header"
 import Image from "next/image"
-import { Wand2 } from "lucide-react"
+import { Wand2, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CollageGenerator } from "@/components/collage-generator"
+import { LapseGenerator } from "@/components/lapse-generator"
+import { PhotoCache } from "@/lib/photo-cache"
 
 interface Photo {
     id: string
@@ -18,10 +20,12 @@ interface Photo {
 
 interface RecapClientProps {
     photos: Photo[]
+    userId: string
 }
 
-export function RecapClient({ photos }: RecapClientProps) {
+export function RecapClient({ photos, userId }: RecapClientProps) {
     const [showCollage, setShowCollage] = useState(false)
+    const [showLapse, setShowLapse] = useState(false)
     const [urlCache, setUrlCache] = useState<Record<string, string>>({})
 
     const onUrlResolved = (key: string, url: string) => {
@@ -30,24 +34,35 @@ export function RecapClient({ photos }: RecapClientProps) {
 
     return (
         <div className="min-h-screen bg-[var(--paper)] pb-20">
-            <AppHeader />
+            <AppHeader userId={userId} />
 
             <main className="max-w-2xl mx-auto px-4 pt-20 pb-6 space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-[var(--ink)]">Your Week</h1>
-                        <p className="text-[var(--stone)]">Last 7 moments captured</p>
+                        <h1 className="text-2xl font-bold text-[var(--ink)]">Your Journey</h1>
+                        <p className="text-[var(--stone)]">Last 30 moments captured</p>
                     </div>
                     {photos.length > 2 && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setShowCollage(true)}
-                            className="text-[var(--moss)] border-[var(--moss)] hover:bg-[var(--moss)] hover:text-white"
-                        >
-                            <Wand2 className="w-4 h-4 mr-2" />
-                            Magic Collage
-                        </Button>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowLapse(true)}
+                                className="text-[var(--moss)] border-[var(--moss)] hover:bg-[var(--moss)] hover:text-white"
+                            >
+                                <Sparkles className="w-4 h-4 mr-2" />
+                                Life Lapse
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowCollage(true)}
+                                className="text-[var(--moss)] border-[var(--moss)] hover:bg-[var(--moss)] hover:text-white"
+                            >
+                                <Wand2 className="w-4 h-4 mr-2" />
+                                Magic Collage
+                            </Button>
+                        </div>
                     )}
                 </div>
 
@@ -86,11 +101,16 @@ export function RecapClient({ photos }: RecapClientProps) {
                 urlCache={urlCache}
                 onUrlResolved={onUrlResolved}
             />
+
+            <LapseGenerator
+                photos={photos}
+                open={showLapse}
+                onOpenChange={setShowLapse}
+                urlCache={urlCache}
+            />
         </div>
     )
 }
-
-import { PhotoCache } from "@/lib/photo-cache"
 
 function PhotoThumbnail({
     photo,

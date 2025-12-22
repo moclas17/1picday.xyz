@@ -11,7 +11,7 @@ export function AppHeader({ userId }: { userId?: string }) {
           <div className="w-8 h-8 rounded-md bg-[var(--moss)] flex items-center justify-center">
             <ImageIcon className="w-5 h-5 text-[var(--paper)]" />
           </div>
-          <span className="font-bold text-[var(--ink)]">1picday</span>
+          <span className="font-bold text-[var(--ink)]">1picday.xyz</span>
         </div>
         <div className="flex items-center gap-1">
           {userId && <NotificationButton userId={userId} />}

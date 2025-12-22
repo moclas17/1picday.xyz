@@ -8,13 +8,13 @@ import { PWAProvider } from "@/components/pwa-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "1picday",
+  title: "1picday.xyz",
   description: "Capture your life, one photo at a time",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "1picday",
+    title: "1picday.xyz",
   },
   formatDetection: {
     telephone: false,

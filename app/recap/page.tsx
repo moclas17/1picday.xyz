@@ -16,7 +16,7 @@ export default async function RecapPage() {
         .select("*")
         .eq("user_id", user.userId)
         .order("date", { ascending: false })
-        .limit(20);
+        .limit(30);
 
-    return <RecapClient photos={photos || []} />;
+    return <RecapClient photos={photos || []} userId={user.userId} />;
 }
