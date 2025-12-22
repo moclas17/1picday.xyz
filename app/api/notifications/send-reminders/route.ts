@@ -10,8 +10,14 @@ const supabaseAdmin = createClient(
 
 export async function GET(req: Request) {
     try {
+        const authHeader = req.headers.get('authorization');
         const { searchParams } = new URL(req.url);
         const force = searchParams.get("force") === "true";
+        const isCron = authHeader === `Bearer ${process.env.CRON_SECRET}`;
+
+        if (!isCron && !force && process.env.NODE_ENV === 'production') {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
         // 1. Check current hour (10 AM - 8 PM local time)
         const now = new Date();
