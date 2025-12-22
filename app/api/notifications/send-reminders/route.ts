@@ -10,14 +10,25 @@ const supabaseAdmin = createClient(
 
 export async function GET(req: Request) {
     try {
+        const { searchParams } = new URL(req.url);
+        const force = searchParams.get("force") === "true";
+
         // 1. Check current hour (10 AM - 8 PM local time)
-        // Since this runs on server, we should ideally know the user's timezone, 
-        // but for now we'll use a standard offset or assume server/local parity for the PoC.
         const now = new Date();
         const hour = now.getHours();
 
-        if (hour < 10 || hour > 20) {
-            return NextResponse.json({ message: "Outside notification hours (10 AM - 8 PM)" });
+        console.log(`Notifications Check: Server Time: ${now.toISOString()}, Local Hour: ${hour}, Force: ${force}`);
+
+        // Limit range: 10:00 AM to 7:59 PM (inclusive of 10, up to but not including 20)
+        // If the user wants 8 PM included, it should be hour < 21.
+        // User said "10am a 8pm", so we'll allow hours 10 through 19.
+        if (!force && (hour < 10 || hour >= 20)) {
+            return NextResponse.json({
+                message: "Outside notification hours (10 AM - 8 PM)",
+                server_hour: hour,
+                server_time: now.toISOString(),
+                tip: "Use ?force=true to test outside these hours"
+            });
         }
 
         const today = formatDateLocal(now);
