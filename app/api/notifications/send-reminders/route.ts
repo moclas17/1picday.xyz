@@ -66,7 +66,7 @@ export async function GET(req: Request) {
                     await webpush.sendNotification(
                         sub.subscription,
                         JSON.stringify({
-                            title: "Don't forget 1picday! 📸",
+                            title: "Don't forget 1picday.xyz! 📸",
                             body: "Capture your daily moment before the day ends.",
                             url: "/app"
                         })
