@@ -36,7 +36,7 @@ export async function GET(req: Request) {
         // 2. Find all users with push subscriptions
         const { data: subscriptions, error: subError } = await supabaseAdmin
             .from("push_subscriptions")
-            .select("*, profile:user_id(id)");
+            .select("*");
 
         if (subError) throw subError;
         if (!subscriptions || subscriptions.length === 0) {
