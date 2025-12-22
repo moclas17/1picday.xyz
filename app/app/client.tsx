@@ -68,7 +68,7 @@ export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
     return (
         <>
             <div className="min-h-screen bg-[var(--paper)] pb-20">
-                <AppHeader />
+                <AppHeader userId={userId} />
 
                 <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
                     {/* Today's photo section */}

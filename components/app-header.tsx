@@ -1,8 +1,9 @@
 import { ImageIcon } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
 import { PWAInstallButton } from "./pwa-install-button"
+import { NotificationButton } from "./notification-button"
 
-export function AppHeader() {
+export function AppHeader({ userId }: { userId?: string }) {
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[var(--paper)] border-b border-[var(--mist)]" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <div className="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -13,6 +14,7 @@ export function AppHeader() {
           <span className="font-bold text-[var(--ink)]">1picday</span>
         </div>
         <div className="flex items-center gap-1">
+          {userId && <NotificationButton userId={userId} />}
           <PWAInstallButton />
           <ThemeToggle />
         </div>
