@@ -54,8 +54,13 @@ export function UploadSection() {
             });
 
             if (!uploadRes.ok) {
-                console.error("Upload: S3 PUT failed", uploadRes.status, uploadRes.statusText);
-                throw new Error("Failed to upload image to storage.");
+                const status = uploadRes.status;
+                const statusText = uploadRes.statusText;
+                console.error("Upload: S3 PUT failed", status, statusText);
+                if (status === 0 || status === 403) {
+                    throw new Error(`Storage Access Denied (${status}). Please check S3 CORS settings.`);
+                }
+                throw new Error(`Upload to storage failed with status ${status}: ${statusText}`);
             }
             console.log("Upload: S3 PUT success");
 
@@ -73,9 +78,9 @@ export function UploadSection() {
             });
 
             if (!commitRes.ok) {
-                const commitData = await commitRes.json();
-                console.error("Upload: Commit failed", commitData);
-                throw new Error("Failed to save photo record.");
+                const commitData = await commitRes.json().catch(() => ({}));
+                console.error("Upload: Commit failed", commitRes.status, commitData);
+                throw new Error(commitData.error || `Database save failed (${commitRes.status})`);
             }
             console.log("Upload: Commit success");
 
@@ -90,37 +95,34 @@ export function UploadSection() {
 
     return (
         <div className="w-full">
-            <label className="block w-full cursor-pointer">
-                <div className="relative group w-full aspect-square rounded-2xl border-2 border-dashed border-border bg-muted/30 flex flex-col items-center justify-center gap-4 transition-all hover:bg-muted/50 hover:border-accent overflow-hidden">
-                    <input
-                        type="file"
-                        className="sr-only"
-                        accept="image/png, image/jpeg, image/webp"
-                        onChange={handleFileChange}
-                        disabled={uploading}
-                    />
+            <div className="relative group w-full aspect-square rounded-2xl border-2 border-dashed border-border bg-muted/30 flex flex-col items-center justify-center gap-4 transition-all hover:bg-muted/50 hover:border-accent overflow-hidden">
+                <input
+                    type="file"
+                    className="absolute inset-0 opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                    accept="image/png, image/jpeg, image/webp"
+                    onChange={handleFileChange}
+                    disabled={uploading}
+                />
 
-                    {uploading ? (
-                        <div className="flex flex-col items-center gap-4">
-                            <div className="w-16 h-16 rounded-full gradient-bg flex items-center justify-center animate-pulse">
-                                <Loader2 className="w-8 h-8 text-white animate-spin" />
-                            </div>
-                            <span className="text-sm font-medium text-muted-foreground">Uploading your moment...</span>
+                {uploading ? (
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-16 h-16 rounded-full gradient-bg flex items-center justify-center animate-pulse">
+                            <Loader2 className="w-8 h-8 text-white animate-spin" />
                         </div>
-                    ) : (
-                        <div className="flex flex-col items-center gap-4 group-hover:scale-105 transition-transform">
-                            <div className="w-16 h-16 rounded-full gradient-bg flex items-center justify-center shadow-lg">
-                                <Camera className="w-8 h-8 text-white" />
-                            </div>
-                            <div className="text-center">
-                                <p className="font-semibold text-foreground">Capture today&apos;s moment</p>
-                                <p className="text-xs text-muted-foreground mt-1">Tap to upload a photo</p>
-                            </div>
+                        <span className="text-sm font-medium text-muted-foreground">Uploading your moment...</span>
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center gap-4 group-hover:scale-105 transition-transform">
+                        <div className="w-16 h-16 rounded-full gradient-bg flex items-center justify-center shadow-lg">
+                            <Camera className="w-8 h-8 text-white" />
                         </div>
-                    )}
-                </div>
-            </label>
-
+                        <div className="text-center">
+                            <p className="font-semibold text-foreground">Capture today&apos;s moment</p>
+                            <p className="text-xs text-muted-foreground mt-1">Tap to upload a photo</p>
+                        </div>
+                    </div>
+                )}
+            </div>
             {error && (
                 <div className="mt-3 p-3 bg-destructive/10 text-destructive text-sm rounded-xl text-center font-medium animate-in slide-in-from-top-2">
                     {error}
