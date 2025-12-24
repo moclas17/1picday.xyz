@@ -10,6 +10,7 @@ import { UpgradeDialog } from "@/components/upgrade-dialog"
 import { useRouter } from "next/navigation"
 import { formatDateLocal, parseDateLocal } from "@/lib/utils"
 import { UploadSection } from "@/components/upload-section"
+import { PhotoCache } from "@/lib/photo-cache"
 
 interface Photo {
     id: string
@@ -27,7 +28,6 @@ interface AppClientProps {
 export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
     const [photos, setPhotos] = useState<Photo[]>(initialPhotos)
     const [showUpgrade, setShowUpgrade] = useState(false)
-    const [uploading, setUploading] = useState(false)
     const [hasHydrated, setHasHydrated] = useState(false)
     const [today, setToday] = useState("")
     const router = useRouter()
@@ -42,7 +42,6 @@ export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
     // Use the potentially server-mismatched 'today' only after hydration
     const todayPhoto = hasHydrated ? photos.find((p) => p.date === today) : null
 
-    // We use the centralized UploadSection now
 
     if (!hasHydrated) {
         // Return a stable initial state for SSR and first render
@@ -110,7 +109,6 @@ export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
     )
 }
 
-import { PhotoCache } from "@/lib/photo-cache"
 
 function PhotoCardWithUrl({ photo }: { photo: Photo }) {
     const [url, setUrl] = useState<string | null>(null)

@@ -11,6 +11,8 @@ export function UploadSection() {
     const router = useRouter();
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        console.log("Upload: Input clicked/changed", e.target.files);
+        alert("File picker triggered!");
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -98,9 +100,10 @@ export function UploadSection() {
             <div className="relative group w-full aspect-square rounded-2xl border-2 border-dashed border-border bg-muted/30 flex flex-col items-center justify-center gap-4 transition-all hover:bg-muted/50 hover:border-accent overflow-hidden">
                 <input
                     type="file"
-                    className="absolute inset-0 opacity-0 cursor-pointer z-10 disabled:cursor-not-allowed"
+                    className="absolute inset-0 opacity-0 cursor-pointer z-50 disabled:cursor-not-allowed"
                     accept="image/png, image/jpeg, image/webp"
                     onChange={handleFileChange}
+                    onClick={() => console.log("Input overlay clicked")}
                     disabled={uploading}
                 />
 
@@ -113,8 +116,9 @@ export function UploadSection() {
                     </div>
                 ) : (
                     <div className="flex flex-col items-center gap-4 group-hover:scale-105 transition-transform">
-                        <div className="w-16 h-16 rounded-full gradient-bg flex items-center justify-center shadow-lg">
+                        <div className="w-16 h-16 rounded-full gradient-bg flex items-center justify-center shadow-lg relative">
                             <Camera className="w-8 h-8 text-white" />
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] px-1 rounded-full px-1">v2</span>
                         </div>
                         <div className="text-center">
                             <p className="font-semibold text-foreground">Capture today&apos;s moment</p>
