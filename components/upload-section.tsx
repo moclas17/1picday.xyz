@@ -97,7 +97,7 @@ export function UploadSection() {
 
     return (
         <div className="w-full">
-            <div className="relative group w-full aspect-square rounded-2xl border-2 border-dashed border-border bg-muted/30 flex flex-col items-center justify-center gap-4 transition-all hover:bg-muted/50 hover:border-accent overflow-hidden">
+            <div className="relative group w-full aspect-[3/1] rounded-2xl border-2 border-dashed border-border bg-muted/30 flex flex-col items-center justify-center gap-2 transition-all hover:bg-muted/50 hover:border-accent overflow-hidden">
                 <input
                     type="file"
                     className="absolute inset-0 opacity-0 cursor-pointer z-50 disabled:cursor-not-allowed"
@@ -108,21 +108,19 @@ export function UploadSection() {
                 />
 
                 {uploading ? (
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="w-16 h-16 rounded-full gradient-bg flex items-center justify-center animate-pulse">
-                            <Loader2 className="w-8 h-8 text-white animate-spin" />
-                        </div>
-                        <span className="text-sm font-medium text-muted-foreground">Uploading your moment...</span>
+                    <div className="flex flex-col items-center gap-2">
+                        <Loader2 className="w-6 h-6 text-accent animate-spin" />
+                        <span className="text-xs font-medium text-muted-foreground">Uploading...</span>
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center gap-4 group-hover:scale-105 transition-transform">
-                        <div className="w-16 h-16 rounded-full gradient-bg flex items-center justify-center shadow-lg relative">
-                            <Camera className="w-8 h-8 text-white" />
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] px-1 rounded-full px-1">v2</span>
+                    <div className="flex items-center gap-4 group-hover:scale-105 transition-transform">
+                        <div className="w-10 h-10 rounded-full gradient-bg flex items-center justify-center shadow-md relative">
+                            <Camera className="w-5 h-5 text-white" />
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[7px] px-1 rounded-full">v2</span>
                         </div>
-                        <div className="text-center">
-                            <p className="font-semibold text-foreground">Capture today&apos;s moment</p>
-                            <p className="text-xs text-muted-foreground mt-1">Tap to upload a photo</p>
+                        <div className="text-left">
+                            <p className="font-semibold text-foreground text-sm">Capture today&apos;s moment</p>
+                            <p className="text-[10px] text-muted-foreground">Tap to upload a photo</p>
                         </div>
                     </div>
                 )}
