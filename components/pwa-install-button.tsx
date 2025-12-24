@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+
 import { Download, Share, PlusSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { usePWA } from "./pwa-provider";
 import {
     Drawer,
     DrawerContent,
@@ -14,39 +16,20 @@ import {
 } from "@/components/ui/drawer";
 
 export function PWAInstallButton() {
-    const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-    const [isVisible, setIsVisible] = useState(false);
-    const [isIOS, setIsIOS] = useState(false);
+    const { deferredPrompt, isStandalone, isIOS, promptInstall } = usePWA();
     const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
-        // Check if standalone
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
         if (isStandalone) {
             setIsVisible(false);
             return;
         }
 
-        // Check if iOS
-        const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-        setIsIOS(ios);
-
-        if (ios) {
+        if (isIOS || deferredPrompt) {
             setIsVisible(true);
         }
-
-        const handler = (e: any) => {
-            e.preventDefault();
-            setDeferredPrompt(e);
-            setIsVisible(true);
-        };
-
-        window.addEventListener("beforeinstallprompt", handler);
-
-        return () => {
-            window.removeEventListener("beforeinstallprompt", handler);
-        };
-    }, []);
+    }, [isStandalone, isIOS, deferredPrompt]);
 
     const handleInstallClick = async () => {
         if (isIOS) {
@@ -55,14 +38,7 @@ export function PWAInstallButton() {
         }
 
         if (!deferredPrompt) return;
-
-        deferredPrompt.prompt();
-
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
-
-        setDeferredPrompt(null);
-        setIsVisible(false);
+        await promptInstall();
     };
 
     if (!isVisible) return null;

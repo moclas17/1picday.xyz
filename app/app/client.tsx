@@ -9,6 +9,7 @@ import { PhotoCard } from "@/components/photo-card"
 import { UpgradeDialog } from "@/components/upgrade-dialog"
 import { useRouter } from "next/navigation"
 import { formatDateLocal, parseDateLocal } from "@/lib/utils"
+import { UploadSection } from "@/components/upload-section"
 
 interface Photo {
     id: string
@@ -41,13 +42,7 @@ export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
     // Use the potentially server-mismatched 'today' only after hydration
     const todayPhoto = hasHydrated ? photos.find((p) => p.date === today) : null
 
-    const handleUpload = async () => {
-        // ... (keep logic same but use the local date at runtime)
-        const currentToday = formatDateLocal()
-        // ... (rest of handleUpload)
-    }
-
-    // ... handleUpload implementation repeated for context if needed, but I'll use ReplacementContent correctly
+    // We use the centralized UploadSection now
 
     if (!hasHydrated) {
         // Return a stable initial state for SSR and first render
@@ -83,23 +78,7 @@ export function AppClient({ initialPhotos, isPro, userId }: AppClientProps) {
                         </div>
 
                         {!todayPhoto ? (
-                            <div className="border-2 border-dashed border-[var(--mist)] rounded-[var(--radius)] p-12 flex flex-col items-center gap-4">
-                                <div className="w-16 h-16 rounded-full bg-[var(--mist)] flex items-center justify-center">
-                                    <Camera className="w-8 h-8 text-[var(--ash)]" />
-                                </div>
-                                <div className="text-center space-y-2">
-                                    <p className="font-medium text-[var(--ink)]">No photo yet today</p>
-                                    <p className="text-sm text-[var(--stone)]">Capture your daily moment</p>
-                                </div>
-                                <Button
-                                    onClick={handleUpload}
-                                    disabled={uploading}
-                                    className="bg-[var(--moss)] text-[var(--paper)] hover:opacity-90"
-                                >
-                                    <Upload className="w-4 h-4 mr-2" />
-                                    {uploading ? "Uploading..." : "Upload Photo"}
-                                </Button>
-                            </div>
+                            <UploadSection />
                         ) : (
                             <div className="space-y-4">
                                 <PhotoCardWithUrl photo={todayPhoto} />
